@@ -1,24 +1,27 @@
 from django.shortcuts import render
 
 # Create your views here.
-import requests
-from django.conf import settings
-from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-from .models import GithubUser, Repository
-from .serializers import RepositorySerializer
+from django.conf import settings
+from django.http import JsonResponse
+import logging
+
+logger = logging.getLogger(__name__)
 
 class GitHubAuthView(APIView):
     permission_classes = [AllowAny]
-    
+
     def get(self, request):
+        logger.info("GitHubAuthView GET request received")
         client_id = settings.GITHUB_CLIENT_ID
         redirect_uri = settings.GITHUB_REDIRECT_URI
-        return JsonResponse({
-            'authorization_url': f'https://github.com/login/oauth/authorize?client_id={client_id}&redirect_uri={redirect_uri}&scope=repo'
-        })
+        authorization_url = f'https://github.com/login/oauth/authorize?client_id={client_id}&redirect_uri={redirect_uri}&scope=repo'
+        logger.info(f"Authorization URL: {authorization_url}")
+        response = JsonResponse({'authorization_url': authorization_url})
+        logger.info(f"Response headers: {dict(response.headers)}")
+        return response
 
 class GitHubCallbackView(APIView):
     def get(self, request):
